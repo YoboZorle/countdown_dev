@@ -12,6 +12,7 @@ class AppTheme {
       secondary: AppColors.secondary,
       surface: AppColors.lightSurface,
       error: AppColors.error,
+      tertiary: AppColors.accent,
     ),
     textTheme: GoogleFonts.interTextTheme().apply(
       bodyColor: AppColors.lightText,
@@ -39,7 +40,52 @@ class AppTheme {
       elevation: 0,
       backgroundColor: AppColors.lightBackground,
       foregroundColor: AppColors.lightText,
-      centerTitle: true,
+      centerTitle: false,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.lightSurface,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: AppColors.lightText.withOpacity(0.1),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(
+          color: AppColors.primary,
+          width: 2,
+        ),
+      ),
+    ),
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return AppColors.primary;
+          }
+          return Colors.transparent;
+        }),
+        foregroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return Colors.white;
+          }
+          return AppColors.lightText;
+        }),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: AppColors.lightSurface,
+      labelStyle: const TextStyle(color: AppColors.lightText),
+      side: BorderSide(color: AppColors.lightText.withOpacity(0.1)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
     ),
   );
 
@@ -52,6 +98,7 @@ class AppTheme {
       secondary: AppColors.secondary,
       surface: AppColors.darkSurface,
       error: AppColors.error,
+      tertiary: AppColors.accent,
     ),
     textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).apply(
       bodyColor: AppColors.darkText,
@@ -79,7 +126,52 @@ class AppTheme {
       elevation: 0,
       backgroundColor: AppColors.darkBackground,
       foregroundColor: AppColors.darkText,
-      centerTitle: true,
+      centerTitle: false,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.darkSurface,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: AppColors.darkText.withOpacity(0.1),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(
+          color: AppColors.primary,
+          width: 2,
+        ),
+      ),
+    ),
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return AppColors.primary;
+          }
+          return Colors.transparent;
+        }),
+        foregroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return Colors.white;
+          }
+          return AppColors.darkText;
+        }),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: AppColors.darkSurface,
+      labelStyle: const TextStyle(color: AppColors.darkText),
+      side: BorderSide(color: AppColors.darkText.withOpacity(0.1)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
     ),
   );
 }

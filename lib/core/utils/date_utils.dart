@@ -45,8 +45,10 @@ class AppDateUtils {
   }
 
   static String formatDuration(Duration duration) {
-    if (duration.inHours > 0) {
-      return '${duration.inHours}h ${duration.inMinutes % 60}m';
+    if (duration.inDays > 0) {
+      return '${duration.inDays}d ${duration.inHours.remainder(24)}h';
+    } else if (duration.inHours > 0) {
+      return '${duration.inHours}h ${duration.inMinutes.remainder(60)}m';
     } else {
       return '${duration.inMinutes}m';
     }
@@ -95,33 +97,12 @@ class AppDateUtils {
     return days[weekday - 1];
   }
 
-  static String getShortDayName(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[weekday - 1];
-  }
-
   static DateTime getStartOfDay(DateTime date) {
     return DateTime(date.year, date.month, date.day);
   }
 
   static DateTime getEndOfDay(DateTime date) {
     return DateTime(date.year, date.month, date.day, 23, 59, 59);
-  }
-
-  static DateTime getStartOfWeek(DateTime date) {
-    return date.subtract(Duration(days: date.weekday - 1));
-  }
-
-  static DateTime getEndOfWeek(DateTime date) {
-    return getStartOfWeek(date).add(const Duration(days: 6));
-  }
-
-  static DateTime getStartOfMonth(DateTime date) {
-    return DateTime(date.year, date.month, 1);
-  }
-
-  static DateTime getEndOfMonth(DateTime date) {
-    return DateTime(date.year, date.month + 1, 0);
   }
 
   static int getDaysInMonth(DateTime date) {
@@ -141,30 +122,18 @@ class AppDateUtils {
     return days;
   }
 
-  static int getWeekNumber(DateTime date) {
-    final startOfYear = DateTime(date.year, 1, 1);
-    final daysSinceStart = date.difference(startOfYear).inDays;
-    return ((daysSinceStart + startOfYear.weekday - 1) / 7).ceil();
-  }
-
-  static String formatDeadline(DateTime deadline) {
-    final now = DateTime.now();
-    final difference = deadline.difference(now);
-
-    if (difference.isNegative) {
-      return 'Overdue by ${formatDuration(difference.abs())}';
-    } else if (difference.inDays == 0) {
-      if (difference.inHours == 0) {
-        return 'Due in ${difference.inMinutes} minutes';
-      } else {
-        return 'Due in ${difference.inHours} hours';
-      }
-    } else if (difference.inDays == 1) {
-      return 'Due tomorrow';
-    } else if (difference.inDays <= 7) {
-      return 'Due in ${difference.inDays} days';
+  static String formatCountdown(Duration duration) {
+    if (duration.isNegative) {
+      return 'Overdue by ${formatDuration(duration.abs())}';
+    } else if (duration.inDays > 30) {
+      final months = (duration.inDays / 30).floor();
+      return 'in $months months';
+    } else if (duration.inDays > 0) {
+      return 'in ${duration.inDays} days';
+    } else if (duration.inHours > 0) {
+      return 'in ${duration.inHours} hours';
     } else {
-      return 'Due on ${formatDate(deadline)}';
+      return 'in ${duration.inMinutes} minutes';
     }
   }
 }
