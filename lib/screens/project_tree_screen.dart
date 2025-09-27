@@ -154,74 +154,74 @@ class _ProjectTreeScreenState extends State<ProjectTreeScreen> {
       ),
       body: tasks.isEmpty
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.task_alt,
-              size: 64,
-              color: theme.colorScheme.onSurface.withOpacity(0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No tasks yet',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.task_alt,
+                    size: 64,
+                    color: theme.colorScheme.onSurface.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No tasks yet',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add First Task'),
+                    onPressed: () => _showAddTaskDialog(null),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.add),
-              label: const Text('Add First Task'),
-              onPressed: () => _showAddTaskDialog(null),
-            ),
-          ],
-        ),
-      )
+            )
           : Column(
-        children: [
-          // Project Progress Bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Project Progress',
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    Text(
-                      '${(widget.project.progress * 100).toInt()}%',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
+                // Project Progress Bar
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Project Progress',
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          Text(
+                            '${(widget.project.progress * 100).toInt()}%',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(
+                        value: widget.project.progress,
+                        minHeight: 8,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      const SizedBox(height: 8),
+                      CountdownWidget(targetDate: widget.project.endDate),
+                    ],
+                  ),
+                ).animate().fadeIn().slideY(begin: 0.1, end: 0),
+                
+                // Custom Tree View
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    children: _buildTreeNodes(tasks, 0),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: widget.project.progress,
-                  minHeight: 8,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                const SizedBox(height: 8),
-                CountdownWidget(targetDate: widget.project.endDate),
               ],
             ),
-          ).animate().fadeIn().slideY(begin: 0.1, end: 0),
-
-          // Custom Tree View
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              children: _buildTreeNodes(tasks, 0),
-            ),
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddTaskDialog(null),
         child: const Icon(Icons.add),
@@ -231,25 +231,25 @@ class _ProjectTreeScreenState extends State<ProjectTreeScreen> {
 
   List<Widget> _buildTreeNodes(List<TaskNode> nodes, int depth) {
     final widgets = <Widget>[];
-
+    
     for (var i = 0; i < nodes.length; i++) {
       final node = nodes[i];
-
+      
       // Filter by search query
       if (_searchQuery.isNotEmpty) {
         bool matches = node.title.toLowerCase().contains(_searchQuery) ||
             node.description.toLowerCase().contains(_searchQuery);
-
+        
         // Check if any children match
         if (!matches && node.children.isNotEmpty) {
           matches = _hasMatchingChild(node.children);
         }
-
+        
         if (!matches) continue;
       }
-
+      
       final isExpanded = _expandedNodes.contains(node.id) || _expandAll;
-
+      
       widgets.add(
         TreeNodeWidget(
           key: Key(node.id),
@@ -273,13 +273,13 @@ class _ProjectTreeScreenState extends State<ProjectTreeScreen> {
             .fadeIn(delay: (50 * i).ms)
             .slideX(begin: 0.05, end: 0),
       );
-
+      
       // Add children if expanded
       if (isExpanded && node.children.isNotEmpty) {
         widgets.addAll(_buildTreeNodes(node.children, depth + 1));
       }
     }
-
+    
     return widgets;
   }
 
@@ -382,7 +382,7 @@ class _ProjectTreeScreenState extends State<ProjectTreeScreen> {
                   if (titleController.text.isNotEmpty) {
                     final provider = context.read<ProjectProvider>();
                     final tasks = provider.getProjectTasks(widget.project.id);
-
+                    
                     final newTask = TaskNode(
                       projectId: widget.project.id,
                       parentId: parent?.id,
@@ -393,10 +393,10 @@ class _ProjectTreeScreenState extends State<ProjectTreeScreen> {
                       depth: (parent?.depth ?? -1) + 1,
                       position: parent?.children.length ?? tasks.length,
                     );
-
+                    
                     provider.addTask(newTask);
                     Navigator.pop(context);
-
+                    
                     // Expand parent node to show new task
                     if (parent != null) {
                       setState(() {
@@ -453,7 +453,7 @@ class _ProjectTreeScreenState extends State<ProjectTreeScreen> {
       completedDate: status == TaskStatus.done ? DateTime.now() : null,
       progress: status == TaskStatus.done ? 1.0 : node.progress,
     );
-
+    
     context.read<ProjectProvider>().updateTask(updatedTask);
   }
 }

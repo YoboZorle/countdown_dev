@@ -12,16 +12,16 @@ import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   // Initialize database
   await DatabaseHelper.instance.database;
-
+  
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
     ),
   );
-
+  
   runApp(const ProjectTreeApp());
 }
 

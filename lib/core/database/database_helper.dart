@@ -30,22 +30,22 @@ class DatabaseHelper {
   Future<void> _onCreate(Database db, int version) async {
     // Projects table
     await db.execute(Tables.createProjectsTable);
-
+    
     // Task nodes table
     await db.execute(Tables.createTaskNodesTable);
-
+    
     // Milestones table
     await db.execute(Tables.createMilestonesTable);
-
+    
     // Team members table
     await db.execute(Tables.createTeamMembersTable);
-
+    
     // Project members junction table
     await db.execute(Tables.createProjectMembersTable);
-
+    
     // Comments table
     await db.execute(Tables.createCommentsTable);
-
+    
     // Create indexes
     await db.execute(Tables.createIndexes);
   }
@@ -144,7 +144,7 @@ class DatabaseHelper {
   Future<void> updateTaskPositions(List<Map<String, dynamic>> tasks) async {
     Database db = await database;
     Batch batch = db.batch();
-
+    
     for (var task in tasks) {
       batch.update(
         'task_nodes',
@@ -153,7 +153,7 @@ class DatabaseHelper {
         whereArgs: [task['id']],
       );
     }
-
+    
     await batch.commit();
   }
 

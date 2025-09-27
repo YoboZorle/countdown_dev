@@ -54,7 +54,7 @@ class HomeScreen extends StatelessWidget {
             selected: {viewProvider.currentView},
             onSelectionChanged: (Set<ViewType> newSelection) {
               viewProvider.setView(newSelection.first);
-
+              
               // Navigate to appropriate screen
               if (projectProvider.selectedProject != null) {
                 switch (newSelection.first) {
@@ -108,124 +108,124 @@ class HomeScreen extends StatelessWidget {
       body: projectProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-        onRefresh: () => projectProvider.loadProjects(),
-        child: CustomScrollView(
-          slivers: [
-            // Dashboard Stats
-            SliverToBoxAdapter(
-              child: _buildDashboard(context, projectProvider),
-            ),
-
-            // Projects Header
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverToBoxAdapter(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Projects',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.add),
-                      label: const Text('New Project'),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CreateProjectScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Projects Grid
-            if (projectProvider.projects.isEmpty)
-              SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.folder_open,
-                        size: 64,
-                        color: theme.colorScheme.onSurface.withOpacity(0.3),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No projects yet',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.5),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Create your first project to get started',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.4),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.add),
-                        label: const Text('Create Project'),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const CreateProjectScreen(),
+              onRefresh: () => projectProvider.loadProjects(),
+              child: CustomScrollView(
+                slivers: [
+                  // Dashboard Stats
+                  SliverToBoxAdapter(
+                    child: _buildDashboard(context, projectProvider),
+                  ),
+                  
+                  // Projects Header
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverToBoxAdapter(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Projects',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        },
+                          ),
+                          TextButton.icon(
+                            icon: const Icon(Icons.add),
+                            label: const Text('New Project'),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CreateProjectScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.85,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                      final project = projectProvider.projects[index];
-                      return ProjectCard(
-                        project: project,
-                        onTap: () {
-                          projectProvider.selectProject(project);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ProjectTreeScreen(
-                                project: project,
+                  
+                  // Projects Grid
+                  if (projectProvider.projects.isEmpty)
+                    SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.folder_open,
+                              size: 64,
+                              color: theme.colorScheme.onSurface.withOpacity(0.3),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No projects yet',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: theme.colorScheme.onSurface.withOpacity(0.5),
                               ),
                             ),
-                          );
-                        },
-                      ).animate()
-                          .fadeIn(delay: (50 * index).ms)
-                          .slideY(begin: 0.1, end: 0);
-                    },
-                    childCount: projectProvider.projects.length,
-                  ),
-                ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Create your first project to get started',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.add),
+                              label: const Text('Create Project'),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const CreateProjectScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverGrid(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.85,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final project = projectProvider.projects[index];
+                            return ProjectCard(
+                              project: project,
+                              onTap: () {
+                                projectProvider.selectProject(project);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ProjectTreeScreen(
+                                      project: project,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ).animate()
+                                .fadeIn(delay: (50 * index).ms)
+                                .slideY(begin: 0.1, end: 0);
+                          },
+                          childCount: projectProvider.projects.length,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-          ],
-        ),
-      ),
+            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -260,7 +260,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
+          
           // Stats Cards
           Row(
             children: [
@@ -289,7 +289,7 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-
+          
           // Progress Card
           Card(
             child: Padding(
@@ -334,9 +334,9 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ).animate().fadeIn().slideX(begin: 0.1, end: 0),
-
+          
           const SizedBox(height: 16),
-
+          
           // Upcoming Deadlines
           if (provider.getUpcomingTasks().isNotEmpty) ...[
             Text(
@@ -384,14 +384,14 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildStatCard(
-      BuildContext context,
-      String title,
-      String value,
-      IconData icon,
-      Color color,
-      ) {
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     final theme = Theme.of(context);
-
+    
     return Card(
       child: Container(
         padding: const EdgeInsets.all(16),

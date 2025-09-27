@@ -30,7 +30,7 @@ class TreeNodeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final indentSize = 24.0;
-
+    
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -39,7 +39,7 @@ class TreeNodeWidget extends StatelessWidget {
           children: [
             // Indentation based on depth
             SizedBox(width: depth * indentSize),
-
+            
             // Tree lines and expand/collapse button
             Container(
               width: 40,
@@ -57,7 +57,7 @@ class TreeNodeWidget extends StatelessWidget {
                         color: theme.dividerColor.withOpacity(0.3),
                       ),
                     ),
-
+                  
                   // Horizontal line to node
                   if (depth > 0)
                     Positioned(
@@ -69,7 +69,7 @@ class TreeNodeWidget extends StatelessWidget {
                         color: theme.dividerColor.withOpacity(0.3),
                       ),
                     ),
-
+                  
                   // Expand/Collapse button
                   if (hasChildren)
                     Center(
@@ -89,7 +89,7 @@ class TreeNodeWidget extends StatelessWidget {
                 ],
               ),
             ),
-
+            
             // Status Icon Button
             IconButton(
               icon: Icon(
@@ -100,7 +100,7 @@ class TreeNodeWidget extends StatelessWidget {
                 _showStatusMenu(context);
               },
             ),
-
+            
             // Task Content Card
             Expanded(
               child: Container(
@@ -191,19 +191,37 @@ class TreeNodeWidget extends StatelessWidget {
                                   ],
                                 ),
                               ),
-
+                              
                               // Progress indicator
-                              if (node.progress > 0) ...[
+                              if (node.progress > 0 || hasChildren) ...[
                                 SizedBox(
-                                  width: 60,
+                                  width: 80,
                                   child: Row(
                                     children: [
                                       Expanded(
-                                        child: LinearProgressIndicator(
-                                          value: node.progress,
-                                          minHeight: 4,
-                                          backgroundColor:
-                                          theme.colorScheme.primary.withOpacity(0.2),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            LinearProgressIndicator(
+                                              value: node.progress,
+                                              minHeight: 4,
+                                              backgroundColor:
+                                                  theme.colorScheme.primary.withOpacity(0.2),
+                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                hasChildren 
+                                                    ? theme.colorScheme.tertiary
+                                                    : theme.colorScheme.primary,
+                                              ),
+                                            ),
+                                            if (hasChildren)
+                                              Text(
+                                                'auto',
+                                                style: theme.textTheme.bodySmall?.copyWith(
+                                                  fontSize: 9,
+                                                  color: theme.colorScheme.tertiary,
+                                                ),
+                                              ),
+                                          ],
                                         ),
                                       ),
                                       const SizedBox(width: 4),
@@ -215,7 +233,7 @@ class TreeNodeWidget extends StatelessWidget {
                                   ),
                                 ),
                               ],
-
+                              
                               // Action Buttons
                               Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -244,7 +262,7 @@ class TreeNodeWidget extends StatelessWidget {
                               ),
                             ],
                           ),
-
+                          
                           // Show child count if collapsed
                           if (hasChildren && !isExpanded) ...[
                             const SizedBox(height: 4),
@@ -281,9 +299,9 @@ class TreeNodeWidget extends StatelessWidget {
 
   void _showStatusMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-    Overlay.of(context).context.findRenderObject() as RenderBox;
-
+    final RenderBox overlay = 
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    
     final position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -292,7 +310,7 @@ class TreeNodeWidget extends StatelessWidget {
       ),
       Offset.zero & overlay.size,
     );
-
+    
     showMenu<TaskStatus>(
       context: context,
       position: position,
@@ -318,7 +336,7 @@ class TreeNodeWidget extends StatelessWidget {
       }
     });
   }
-
+  
   String _getStatusName(TaskStatus status) {
     switch (status) {
       case TaskStatus.todo:
@@ -333,7 +351,7 @@ class TreeNodeWidget extends StatelessWidget {
         return 'Blocked';
     }
   }
-
+  
   IconData _getStatusIcon(TaskStatus status) {
     switch (status) {
       case TaskStatus.todo:
@@ -348,7 +366,7 @@ class TreeNodeWidget extends StatelessWidget {
         return Icons.block;
     }
   }
-
+  
   Color _getStatusColor(TaskStatus status) {
     switch (status) {
       case TaskStatus.todo:
