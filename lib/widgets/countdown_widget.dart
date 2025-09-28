@@ -44,7 +44,7 @@ class _CountdownWidgetState extends State<CountdownWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isOverdue = _timeRemaining.isNegative;
-
+    
     if (widget.compact) {
       return Text(
         _getCompactTimeString(),
@@ -54,12 +54,12 @@ class _CountdownWidgetState extends State<CountdownWidget> {
         ),
       );
     }
-
+    
     final days = _timeRemaining.inDays.abs();
     final hours = _timeRemaining.inHours.remainder(24).abs();
     final minutes = _timeRemaining.inMinutes.remainder(60).abs();
     final seconds = _timeRemaining.inSeconds.remainder(60).abs();
-
+    
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -90,11 +90,11 @@ class _CountdownWidgetState extends State<CountdownWidget> {
       ),
     );
   }
-
+  
   String _getCompactTimeString() {
     final isOverdue = _timeRemaining.isNegative;
     final absTime = _timeRemaining.abs();
-
+    
     if (absTime.inDays > 30) {
       final months = (absTime.inDays / 30).floor();
       return isOverdue ? '$months months overdue' : 'in $months months';
@@ -106,10 +106,10 @@ class _CountdownWidgetState extends State<CountdownWidget> {
       return isOverdue ? '${absTime.inMinutes}m overdue' : 'in ${absTime.inMinutes}m';
     }
   }
-
+  
   Widget _buildTimeUnit(String value, String label, bool isOverdue) {
     final theme = Theme.of(context);
-
+    
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -129,15 +129,15 @@ class _CountdownWidgetState extends State<CountdownWidget> {
       ],
     );
   }
-
+  
   Widget _buildSeparator() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(
         ':',
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
+              fontWeight: FontWeight.bold,
+            ),
       ),
     );
   }

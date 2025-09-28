@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
-import '../models/task_node.dart';
 import '../providers/project_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/view_provider.dart';
 import '../models/project.dart';
+import '../models/task_node.dart';
 import '../widgets/project_card.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/countdown_widget.dart';
@@ -31,68 +31,46 @@ class HomeScreen extends StatelessWidget {
         title: const Text('Project Tree'),
         centerTitle: false,
         actions: [
-          // View Toggle
-          SegmentedButton<ViewType>(
-            segments: const [
-              ButtonSegment(
-                value: ViewType.grid,
-                icon: Icon(Icons.grid_view, size: 20),
-              ),
-              ButtonSegment(
-                value: ViewType.tree,
-                icon: Icon(Icons.account_tree, size: 20),
-              ),
-              ButtonSegment(
-                value: ViewType.timeline,
-                icon: Icon(Icons.timeline, size: 20),
-              ),
-              ButtonSegment(
-                value: ViewType.board,
-                icon: Icon(Icons.view_kanban, size: 20),
-              ),
-            ],
-            selected: {viewProvider.currentView},
-            onSelectionChanged: (Set<ViewType> newSelection) {
-              viewProvider.setView(newSelection.first);
-              
-              // Navigate to appropriate screen
-              if (projectProvider.selectedProject != null) {
-                switch (newSelection.first) {
-                  case ViewType.tree:
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProjectTreeScreen(
-                          project: projectProvider.selectedProject!,
-                        ),
-                      ),
-                    );
-                    break;
-                  case ViewType.timeline:
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TimelineScreen(
-                          project: projectProvider.selectedProject!,
-                        ),
-                      ),
-                    );
-                    break;
-                  case ViewType.board:
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BoardScreen(
-                          project: projectProvider.selectedProject!,
-                        ),
-                      ),
-                    );
-                    break;
-                  default:
-                    break;
-                }
-              }
-            },
+          // Improved View Toggle with Icon Buttons
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildViewButton(
+                  context,
+                  Icons.grid_view,
+                  'Grid',
+                  ViewType.grid,
+                  viewProvider.currentView == ViewType.grid,
+                ),
+                _buildViewButton(
+                  context,
+                  Icons.account_tree,
+                  'Tree',
+                  ViewType.tree,
+                  viewProvider.currentView == ViewType.tree,
+                ),
+                _buildViewButton(
+                  context,
+                  Icons.timeline,
+                  'Timeline',
+                  ViewType.timeline,
+                  viewProvider.currentView == ViewType.timeline,
+                ),
+                _buildViewButton(
+                  context,
+                  Icons.view_kanban,
+                  'Board',
+                  ViewType.board,
+                  viewProvider.currentView == ViewType.board,
+                ),
+              ],
+            ),
           ),
           const SizedBox(width: 8),
           IconButton(
@@ -379,6 +357,82 @@ class HomeScreen extends StatelessWidget {
             }),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildViewButton(
+    BuildContext context,
+    IconData icon,
+    String tooltip,
+    ViewType viewType,
+    bool isSelected,
+  ) {
+    final theme = Theme.of(context);
+    final viewProvider = Provider.of<ViewProvider>(context, listen: false);
+    final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+    
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: () {
+          viewProvider.setView(viewType);
+          
+          // Navigate to appropriate screen if a project is selected
+          if (projectProvider.selectedProject != null && viewType != ViewType.grid) {
+            switch (viewType) {
+              case ViewType.tree:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProjectTreeScreen(
+                      project: projectProvider.selectedProject!,
+                    ),
+                  ),
+                );
+                break;
+              case ViewType.timeline:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TimelineScreen(
+                      project: projectProvider.selectedProject!,
+                    ),
+                  ),
+                );
+                break;
+              case ViewType.board:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BoardScreen(
+                      project: projectProvider.selectedProject!,
+                    ),
+                  ),
+                );
+                break;
+              default:
+                break;
+            }
+          }
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? theme.colorScheme.primary.withOpacity(0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurface.withOpacity(0.6),
+          ),
+        ),
       ),
     );
   }

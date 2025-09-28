@@ -16,7 +16,7 @@ class ProjectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    
     return Card(
       elevation: 2,
       child: InkWell(
@@ -51,9 +51,9 @@ class ProjectCard extends StatelessWidget {
                   ),
                 ],
               ),
-
+              
               const SizedBox(height: 8),
-
+              
               // Description
               Text(
                 project.description,
@@ -63,9 +63,9 @@ class ProjectCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-
+              
               const Spacer(),
-
+              
               // Progress
               Row(
                 children: [
@@ -103,9 +103,9 @@ class ProjectCard extends StatelessWidget {
                   ),
                 ],
               ),
-
+              
               const SizedBox(height: 12),
-
+              
               // Status & Deadline
               Row(
                 children: [
@@ -152,7 +152,7 @@ class ProjectCard extends StatelessWidget {
       ),
     );
   }
-
+  
   Color _getStatusColor(ProjectStatus status) {
     switch (status) {
       case ProjectStatus.planning:

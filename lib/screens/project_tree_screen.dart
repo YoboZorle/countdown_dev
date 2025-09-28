@@ -451,9 +451,12 @@ class _ProjectTreeScreenState extends State<ProjectTreeScreen> {
     final updatedTask = node.copyWith(
       status: status,
       completedDate: status == TaskStatus.done ? DateTime.now() : null,
-      progress: status == TaskStatus.done ? 1.0 : node.progress,
+      progress: status == TaskStatus.done ? 1.0 : 
+                status == TaskStatus.todo ? 0.0 : 
+                status == TaskStatus.inProgress ? 0.5 : node.progress,
     );
     
+    // This will trigger parent progress recalculation in the provider
     context.read<ProjectProvider>().updateTask(updatedTask);
   }
 }

@@ -30,11 +30,11 @@ class ProjectProvider extends ChangeNotifier {
     try {
       final projectMaps = await DatabaseHelper.instance.getProjects();
       _projects.clear();
-
+      
       for (var projectMap in projectMaps) {
         final project = Project.fromMap(projectMap);
         _projects.add(project);
-
+        
         // Load tasks for each project
         await loadProjectTasks(project.id);
       }
@@ -50,7 +50,7 @@ class ProjectProvider extends ChangeNotifier {
     try {
       final taskMaps = await DatabaseHelper.instance.getTaskNodes(projectId);
       final tasks = taskMaps.map((map) => TaskNode.fromMap(map)).toList();
-
+      
       // Build task hierarchy
       _projectTasks[projectId] = _buildTaskHierarchy(tasks);
       notifyListeners();
@@ -63,9 +63,30 @@ class ProjectProvider extends ChangeNotifier {
     final Map<String, TaskNode> taskMap = {};
     final List<TaskNode> rootTasks = [];
 
-    // First pass: create all task nodes
+    // First pass: create all task nodes with mutable children lists
     for (var task in flatTasks) {
-      taskMap[task.id] = task;
+      taskMap[task.id] = TaskNode(
+        id: task.id,
+        projectId: task.projectId,
+        parentId: task.parentId,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        assigneeId: task.assigneeId,
+        startDate: task.startDate,
+        dueDate: task.dueDate,
+        completedDate: task.completedDate,
+        progress: task.progress,
+        position: task.position,
+        depth: task.depth,
+        estimatedHours: task.estimatedHours,
+        actualHours: task.actualHours,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        children: [], // Ensure mutable list
+        isExpanded: task.isExpanded,
+      );
     }
 
     // Second pass: build hierarchy
@@ -133,19 +154,26 @@ class ProjectProvider extends ChangeNotifier {
   Future<void> addTask(TaskNode task) async {
     try {
       await DatabaseHelper.instance.insertTaskNode(task.toMap());
-
+      
       if (!_projectTasks.containsKey(task.projectId)) {
         _projectTasks[task.projectId] = [];
       }
-
+      
       if (task.parentId == null) {
         _projectTasks[task.projectId]!.add(task);
       } else {
         // Find parent and add as child
         final parent = _findTaskInHierarchy(task.parentId!, task.projectId);
-        parent?.children.add(task);
+        if (parent != null) {
+          parent.children.add(task);
+          // Recalculate parent progress after adding child
+          await updateTask(parent);
+        }
       }
-
+      
+      // Update project progress
+      await _updateProjectProgress(task.projectId);
+      
       notifyListeners();
     } catch (e) {
       debugPrint('Error adding task: $e');
@@ -155,7 +183,7 @@ class ProjectProvider extends ChangeNotifier {
 
   TaskNode? _findTaskInHierarchy(String taskId, String projectId) {
     final tasks = _projectTasks[projectId] ?? [];
-
+    
     TaskNode? findInList(List<TaskNode> list) {
       for (var task in list) {
         if (task.id == taskId) return task;
@@ -164,39 +192,51 @@ class ProjectProvider extends ChangeNotifier {
       }
       return null;
     }
-
+    
     return findInList(tasks);
   }
 
   Future<void> updateTask(TaskNode task) async {
     try {
-      await DatabaseHelper.instance.updateTaskNode(task.toMap());
-
+      // Calculate progress based on children if it has any
+      TaskNode updatedTask = task;
+      if (task.children.isNotEmpty) {
+        double childrenProgress = _calculateNodeProgress(task);
+        updatedTask = task.copyWith(
+          progress: childrenProgress,
+          status: childrenProgress == 1.0 ? TaskStatus.done : task.status,
+        );
+      }
+      
+      await DatabaseHelper.instance.updateTaskNode(updatedTask.toMap());
+      
       // Update in memory
-      final existing = _findTaskInHierarchy(task.id, task.projectId);
+      final existing = _findTaskInHierarchy(updatedTask.id, updatedTask.projectId);
       if (existing != null) {
-        // Copy updated values
-        final parent = task.parentId != null
-            ? _findTaskInHierarchy(task.parentId!, task.projectId)
+        // Update the task in the hierarchy
+        final parent = updatedTask.parentId != null 
+            ? _findTaskInHierarchy(updatedTask.parentId!, updatedTask.projectId) 
             : null;
-
+            
         if (parent != null) {
-          final index = parent.children.indexWhere((t) => t.id == task.id);
+          final index = parent.children.indexWhere((t) => t.id == updatedTask.id);
           if (index != -1) {
-            parent.children[index] = task;
+            parent.children[index] = updatedTask;
           }
+          // Recursively update parent progress
+          await updateTask(parent);
         } else {
-          final rootTasks = _projectTasks[task.projectId]!;
-          final index = rootTasks.indexWhere((t) => t.id == task.id);
+          final rootTasks = _projectTasks[updatedTask.projectId]!;
+          final index = rootTasks.indexWhere((t) => t.id == updatedTask.id);
           if (index != -1) {
-            rootTasks[index] = task;
+            rootTasks[index] = updatedTask;
           }
         }
       }
-
+      
       // Update project progress
-      await _updateProjectProgress(task.projectId);
-
+      await _updateProjectProgress(updatedTask.projectId);
+      
       notifyListeners();
     } catch (e) {
       debugPrint('Error updating task: $e');
@@ -204,41 +244,90 @@ class ProjectProvider extends ChangeNotifier {
     }
   }
 
+  double _calculateNodeProgress(TaskNode node) {
+    if (node.children.isEmpty) {
+      // Leaf node - use its own progress or status
+      if (node.status == TaskStatus.done) return 1.0;
+      if (node.status == TaskStatus.blocked) return node.progress;
+      return node.progress;
+    }
+    
+    // Parent node - calculate based on children
+    double totalProgress = 0.0;
+    int totalChildren = 0;
+    
+    void calculateRecursively(List<TaskNode> nodes) {
+      for (var child in nodes) {
+        if (child.children.isEmpty) {
+          // Leaf node contributes to progress
+          totalProgress += child.status == TaskStatus.done ? 1.0 : child.progress;
+          totalChildren++;
+        } else {
+          // Recursive calculation for nested children
+          calculateRecursively(child.children);
+        }
+      }
+    }
+    
+    calculateRecursively(node.children);
+    
+    return totalChildren > 0 ? totalProgress / totalChildren : 0.0;
+  }
+
   Future<void> _updateProjectProgress(String projectId) async {
     final tasks = _getAllTasksFlat(projectId);
     if (tasks.isEmpty) return;
-
+    
+    // Calculate overall project progress based on all leaf tasks
+    double totalProgress = 0.0;
+    int leafTaskCount = 0;
+    
+    for (var task in tasks) {
+      if (task.children.isEmpty) {
+        totalProgress += task.status == TaskStatus.done ? 1.0 : task.progress;
+        leafTaskCount++;
+      }
+    }
+    
+    final progress = leafTaskCount > 0 ? totalProgress / leafTaskCount : 0.0;
     final completedTasks = tasks.where((t) => t.status == TaskStatus.done).length;
-    final progress = completedTasks / tasks.length;
-
-    final project = _projects.firstWhere((p) => p.id == projectId);
-    final updatedProject = project.copyWith(
-      progress: progress,
-      totalTasks: tasks.length,
-      completedTasks: completedTasks,
-    );
-
-    await updateProject(updatedProject);
+    
+    final projectIndex = _projects.indexWhere((p) => p.id == projectId);
+    if (projectIndex != -1) {
+      final project = _projects[projectIndex];
+      final updatedProject = project.copyWith(
+        progress: progress,
+        totalTasks: tasks.length,
+        completedTasks: completedTasks,
+      );
+      
+      _projects[projectIndex] = updatedProject;
+      await DatabaseHelper.instance.updateProject(updatedProject.toMap());
+    }
   }
 
   List<TaskNode> _getAllTasksFlat(String projectId) {
     final tasks = <TaskNode>[];
-
+    
     void addTasksRecursively(List<TaskNode> nodes) {
       for (var node in nodes) {
         tasks.add(node);
         addTasksRecursively(node.children);
       }
     }
-
+    
     addTasksRecursively(_projectTasks[projectId] ?? []);
     return tasks;
   }
 
   Future<void> deleteTask(String taskId, String projectId) async {
     try {
+      // Find the task to get parent info before deletion
+      final taskToDelete = _findTaskInHierarchy(taskId, projectId);
+      final parentId = taskToDelete?.parentId;
+      
       await DatabaseHelper.instance.deleteTaskNode(taskId);
-
+      
       // Remove from hierarchy
       void removeFromList(List<TaskNode> list) {
         list.removeWhere((t) => t.id == taskId);
@@ -246,10 +335,19 @@ class ProjectProvider extends ChangeNotifier {
           removeFromList(task.children);
         }
       }
-
+      
       removeFromList(_projectTasks[projectId] ?? []);
+      
+      // Recalculate parent progress if task had a parent
+      if (parentId != null) {
+        final parent = _findTaskInHierarchy(parentId, projectId);
+        if (parent != null) {
+          await updateTask(parent);
+        }
+      }
+      
       await _updateProjectProgress(projectId);
-
+      
       notifyListeners();
     } catch (e) {
       debugPrint('Error deleting task: $e');
@@ -283,7 +381,7 @@ class ProjectProvider extends ChangeNotifier {
           'parent_id': reorderedTasks[i].parentId,
         });
       }
-
+      
       await DatabaseHelper.instance.updateTaskPositions(updates);
       _projectTasks[projectId] = reorderedTasks;
       notifyListeners();
@@ -300,7 +398,7 @@ class ProjectProvider extends ChangeNotifier {
         allTasks.addAll(_getAllTasksFlat(projectId));
       }
     }
-
+    
     allTasks.sort((a, b) => a.dueDate.compareTo(b.dueDate));
     return allTasks.take(10).toList();
   }
@@ -310,14 +408,14 @@ class ProjectProvider extends ChangeNotifier {
     for (var status in TaskStatus.values) {
       breakdown[status] = 0;
     }
-
+    
     for (var projectId in _projectTasks.keys) {
       final tasks = _getAllTasksFlat(projectId);
       for (var task in tasks) {
         breakdown[task.status] = (breakdown[task.status] ?? 0) + 1;
       }
     }
-
+    
     return breakdown;
   }
 }

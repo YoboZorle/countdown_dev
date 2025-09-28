@@ -60,16 +60,16 @@ class TaskNode {
       title: map['title'],
       description: map['description'] ?? '',
       status: TaskStatus.values.firstWhere(
-            (s) => s.toString().split('.').last == map['status'],
+        (s) => s.toString().split('.').last == map['status'],
       ),
       priority: TaskPriority.values.firstWhere(
-            (p) => p.toString().split('.').last == map['priority'],
+        (p) => p.toString().split('.').last == map['priority'],
       ),
       assigneeId: map['assignee_id'],
       startDate: map['start_date'] != null ? DateTime.parse(map['start_date']) : null,
       dueDate: DateTime.parse(map['due_date']),
-      completedDate: map['completed_date'] != null
-          ? DateTime.parse(map['completed_date'])
+      completedDate: map['completed_date'] != null 
+          ? DateTime.parse(map['completed_date']) 
           : null,
       progress: map['progress'] ?? 0.0,
       position: map['position'] ?? 0,
@@ -146,8 +146,8 @@ class TaskNode {
   }
 
   Duration get timeRemaining => dueDate.difference(DateTime.now());
-
-  bool get isOverdue =>
+  
+  bool get isOverdue => 
       DateTime.now().isAfter(dueDate) && status != TaskStatus.done;
 
   Color get statusColor {

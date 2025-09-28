@@ -18,7 +18,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   DateTime _endDate = DateTime.now().add(const Duration(days: 30));
   Color _selectedColor = Colors.blue;
   ProjectStatus _status = ProjectStatus.planning;
-
+  
   final List<Color> _availableColors = [
     Colors.blue,
     Colors.red,
@@ -31,18 +31,18 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     Colors.amber,
     Colors.cyan,
   ];
-
+  
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Project'),
@@ -73,7 +73,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               },
             ),
             const SizedBox(height: 16),
-
+            
             TextFormField(
               controller: _descriptionController,
               maxLines: 3,
@@ -91,7 +91,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               },
             ),
             const SizedBox(height: 16),
-
+            
             // Date Range
             Card(
               child: Padding(
@@ -106,7 +106,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
+                    
                     ListTile(
                       leading: const Icon(Icons.calendar_today),
                       title: const Text('Start Date'),
@@ -130,7 +130,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                         }
                       },
                     ),
-
+                    
                     ListTile(
                       leading: const Icon(Icons.event),
                       title: const Text('End Date'),
@@ -156,7 +156,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
+            
             // Status
             Card(
               child: Padding(
@@ -198,7 +198,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
+            
             // Color Selection
             Card(
               child: Padding(
@@ -231,9 +231,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                               shape: BoxShape.circle,
                               border: _selectedColor == color
                                   ? Border.all(
-                                color: theme.colorScheme.primary,
-                                width: 3,
-                              )
+                                      color: theme.colorScheme.primary,
+                                      width: 3,
+                                    )
                                   : null,
                             ),
                           ),
@@ -244,9 +244,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                 ),
               ),
             ),
-
+            
             const SizedBox(height: 32),
-
+            
             ElevatedButton(
               onPressed: _saveProject,
               style: ElevatedButton.styleFrom(
@@ -259,7 +259,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       ),
     );
   }
-
+  
   void _saveProject() async {
     if (_formKey.currentState!.validate()) {
       final project = Project(
@@ -270,7 +270,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         endDate: _endDate,
         status: _status,
       );
-
+      
       try {
         await context.read<ProjectProvider>().addProject(project);
         if (mounted) {
