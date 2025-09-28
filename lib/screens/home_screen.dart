@@ -14,6 +14,7 @@ import 'create_project_screen.dart';
 import 'project_tree_screen.dart';
 import 'timeline_screen.dart';
 import 'board_screen.dart';
+import 'task_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -28,7 +29,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       drawer: const CustomDrawer(),
       appBar: AppBar(
-        title: const Text('Project Tree'),
+        // title: const Text('Project Tree'),
         centerTitle: false,
         actions: [
           // Improved View Toggle with Icon Buttons
@@ -184,14 +185,7 @@ class HomeScreen extends StatelessWidget {
                               project: project,
                               onTap: () {
                                 projectProvider.selectProject(project);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ProjectTreeScreen(
-                                      project: project,
-                                    ),
-                                  ),
-                                );
+                                _navigateToView(context, viewProvider.currentView, project);
                               },
                             ).animate()
                                 .fadeIn(delay: (50 * index).ms)
@@ -217,6 +211,38 @@ class HomeScreen extends StatelessWidget {
         label: const Text('New Project'),
       ).animate().scale(duration: 300.ms),
     );
+  }
+
+  void _navigateToView(BuildContext context, ViewType viewType, Project project) {
+    switch (viewType) {
+      case ViewType.tree:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProjectTreeScreen(project: project),
+          ),
+        );
+        break;
+      case ViewType.timeline:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TimelineScreen(project: project),
+          ),
+        );
+        break;
+      case ViewType.board:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BoardScreen(project: project),
+          ),
+        );
+        break;
+      case ViewType.grid:
+        // Already on grid view (home screen)
+        break;
+    }
   }
 
   Widget _buildDashboard(BuildContext context, ProjectProvider provider) {
@@ -376,44 +402,90 @@ class HomeScreen extends StatelessWidget {
       message: tooltip,
       child: InkWell(
         onTap: () {
+          // Always update the view type
           viewProvider.setView(viewType);
           
-          // Navigate to appropriate screen if a project is selected
-          if (projectProvider.selectedProject != null && viewType != ViewType.grid) {
-            switch (viewType) {
-              case ViewType.tree:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProjectTreeScreen(
-                      project: projectProvider.selectedProject!,
+          // Handle navigation based on view type
+          if (viewType == ViewType.grid) {
+            // Grid view is the home screen, no navigation needed
+            return;
+          }
+          
+          // For other views, check if we have projects
+          if (projectProvider.projects.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('No projects available. Create a project first.'),
+                action: SnackBarAction(
+                  label: 'Create',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreateProjectScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+            return;
+          }
+          
+          // Select a project if none is selected
+          Project? projectToView = projectProvider.selectedProject;
+          
+          if (projectToView == null) {
+            // If only one project exists, auto-select it
+            if (projectProvider.projects.length == 1) {
+              projectToView = projectProvider.projects.first;
+              projectProvider.selectProject(projectToView);
+            } else {
+              // Show dialog to select a project
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) {
+                  return AlertDialog(
+                    title: Text('Select a Project'),
+                    content: SizedBox(
+                      width: double.maxFinite,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: projectProvider.projects.length,
+                        itemBuilder: (context, index) {
+                          final project = projectProvider.projects[index];
+                          return ListTile(
+                            leading: Icon(
+                              Icons.folder,
+                              color: theme.colorScheme.primary,
+                            ),
+                            title: Text(project.name),
+                            subtitle: Text(project.description),
+                            onTap: () {
+                              Navigator.pop(dialogContext);
+                              projectProvider.selectProject(project);
+                              _navigateToSelectedView(context, viewType, project);
+                            },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                );
-                break;
-              case ViewType.timeline:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TimelineScreen(
-                      project: projectProvider.selectedProject!,
-                    ),
-                  ),
-                );
-                break;
-              case ViewType.board:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BoardScreen(
-                      project: projectProvider.selectedProject!,
-                    ),
-                  ),
-                );
-                break;
-              default:
-                break;
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text('Cancel'),
+                      ),
+                    ],
+                  );
+                },
+              );
+              return;
             }
+          }
+          
+          // Navigate to the selected view with the project
+          if (projectToView != null) {
+            _navigateToSelectedView(context, viewType, projectToView);
           }
         },
         borderRadius: BorderRadius.circular(8),
@@ -435,6 +507,38 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _navigateToSelectedView(BuildContext context, ViewType viewType, Project project) {
+    switch (viewType) {
+      case ViewType.tree:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProjectTreeScreen(project: project),
+          ),
+        );
+        break;
+      case ViewType.timeline:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TimelineScreen(project: project),
+          ),
+        );
+        break;
+      case ViewType.board:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BoardScreen(project: project),
+          ),
+        );
+        break;
+      case ViewType.grid:
+        // Already on grid view
+        break;
+    }
   }
 
   Widget _buildStatCard(

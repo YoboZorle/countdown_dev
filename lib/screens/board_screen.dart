@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import 'package:drag_and_drop_lists/drag_and_drop_lists.dart';
 import '../providers/project_provider.dart';
 import '../models/project.dart';
 import '../models/task_node.dart';
-import '../widgets/board_column_widget.dart';
 import 'task_detail_screen.dart';
 
 class BoardScreen extends StatefulWidget {
