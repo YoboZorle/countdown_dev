@@ -14,7 +14,6 @@ import 'create_project_screen.dart';
 import 'project_tree_screen.dart';
 import 'timeline_screen.dart';
 import 'board_screen.dart';
-import 'task_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
